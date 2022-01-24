@@ -1,0 +1,8 @@
+{
+    "title": "Input schema for the apify_project actor.",
+    "type": "object",
+    "schemaVersion": 1,
+    "properties": {
+    },
+    "required": []
+}
