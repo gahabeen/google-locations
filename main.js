@@ -1,5 +1,6 @@
 const { URL } = require('url');
 const Apify = require('apify');
+const { parseString } = require('@fast-csv/parse');
 
 const { log, requestAsBrowser } = Apify.utils;
 
@@ -13,26 +14,19 @@ const getLatestUrl = (html) => {
     }
 };
 
-function csvToJson(csv) {
-    const rows = csv.split('\n');
-    const headers = rows[0].split(',').map((header) => header.replace(/^"|"$/g, ''));
-    const dataset = [];
-
-    for (const row of rows.slice(1)) {
-        const cells = row.split(',').map((cell) => cell.replace(/^"|"$/g, ''));
-        const item = {};
-        for (let index = 0; index < headers.length; index++) {
-            item[headers[index]] = cells[index];
-        }
-        dataset.push(item);
-    }
-
-    return dataset;
+function csvToJson(input) {
+    const output = [];
+    return new Promise((resolve) => {
+        parseString(input, { headers: true })
+            .on('error', (error) => console.error(error))
+            .on('data', (row) => output.push(row))
+            .on('end', () => resolve(output));
+    });
 }
 
 const getLatestTargets = async (url) => {
     const { body: csv } = await requestAsBrowser({ url });
-    const json = csvToJson(csv);
+    const json = await csvToJson(csv);
     return { csv, json };
 };
 
